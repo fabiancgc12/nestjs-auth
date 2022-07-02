@@ -15,4 +15,8 @@ describe('UserService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should create', () => {
+    expect(service).toBeDefined();
+  });
 });
