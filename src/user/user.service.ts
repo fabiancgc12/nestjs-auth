@@ -1,4 +1,4 @@
-import { Injectable, NotAcceptableException } from '@nestjs/common';
+import { Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,7 +20,6 @@ export class UserService {
     createUserDto.password = await hashPassword(createUserDto.password)
     const newUser = new User(createUserDto.email,createUserDto.name,createUserDto.lastName,createUserDto.password);
     await newUser.save()
-    delete newUser.password
     return newUser;
   }
 
@@ -28,8 +27,12 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    const user = await this.usersRepository.findOne({ where:{id} })
+    if (!user){
+      throw new NotFoundException(`User of id: ${id} does not exist`)
+    }
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
