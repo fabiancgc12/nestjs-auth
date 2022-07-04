@@ -12,7 +12,7 @@ describe('UserService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [UserService],
-      imports:[databaseTestConnectionModule,TypeOrmModule.forFeature([User])]
+      imports: [databaseTestConnectionModule, TypeOrmModule.forFeature([User])]
     }).compile();
 
     service = module.get<UserService>(UserService);
@@ -23,30 +23,29 @@ describe('UserService', () => {
 
   describe("create user", () => {
     it('should create user', async () => {
-      const email = `${Math.random()*100000}@gmail.com`;
-      const createDto:CreateUserDto = {
-        name:"fabian",
-        lastName:"graterol",
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
         email,
-        password:"1234",
-        confirmPassword:"1234"
+        password: "1234",
+        confirmPassword: "1234"
       }
       const userCreated = await service.create(createDto)
-      expect(userCreated).toBeInstanceOf(User);
       expect(userCreated).toMatchObject({
-        name:"fabian",
-        lastName:"graterol",
+        name: "fabian",
+        lastName: "graterol",
         email
       });
     });
 
-    it('should throw error if passwords dont match',  async () => {
-      const createDto:CreateUserDto = {
-        name:"fabian",
-        lastName:"graterol",
-        email:"fabian@gmail.com",
-        password:"1sdcsdc234",
-        confirmPassword:"sdcsadc"
+    it('should throw error if passwords dont match', async () => {
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email: "fabian@gmail.com",
+        password: "1sdcsdc234",
+        confirmPassword: "sdcsadc"
       }
 
       await expect(() => service.create(createDto)).rejects.toThrow(NotAcceptableException);
@@ -55,13 +54,13 @@ describe('UserService', () => {
 
   describe("findOne", () => {
     it("should get user by id", async () => {
-      const email = `${Math.random()*100000}@gmail.com`;
-      const createDto:CreateUserDto = {
-        name:"fabian",
-        lastName:"graterol",
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
         email,
-        password:"1234",
-        confirmPassword:"1234"
+        password: "1234",
+        confirmPassword: "1234"
       }
       const userCreated = await service.create(createDto);
       const getUser = await service.findOne(userCreated.id);
@@ -72,4 +71,14 @@ describe('UserService', () => {
       await expect(() => service.findOne(-1)).rejects.toThrow(NotFoundException)
     })
   })
-});
+
+  describe("findAll", () => {
+    it("should return all users", async () => {
+      const users = await service.findAll();
+      expect(users).toBeInstanceOf(Array)
+      if (users.length >= 0)
+        expect(users[0]).toBeInstanceOf(User)
+    })
+  })
+
+})

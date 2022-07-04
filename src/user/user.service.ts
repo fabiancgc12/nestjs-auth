@@ -14,7 +14,7 @@ export class UserService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto):Promise<User> {
     if (createUserDto.password != createUserDto.confirmPassword)
       throw new NotAcceptableException("Passwords does not match")
     createUserDto.password = await hashPassword(createUserDto.password)
@@ -23,8 +23,9 @@ export class UserService {
     return newUser;
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll():Promise<User[]> {
+    const users = await this.usersRepository.find();
+    return users;
   }
 
   async findOne(id: number) {
