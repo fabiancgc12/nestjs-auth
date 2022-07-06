@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { AppBaseModel } from '../../common/BaseModel/AppBaseModel';
+import { Column, Entity } from 'typeorm';
+import { AppBaseModel } from '../../common/Entity/AppBaseModel';
 
 @Entity()
 export class User extends AppBaseModel{

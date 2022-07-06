@@ -3,8 +3,10 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { FindAllUserDto } from './dto/findAll-user.dto';
+import { OrderEnum } from '../common/enum/OrderEnum';
 
 describe('UserService', () => {
   let service: UserService;
@@ -24,17 +26,19 @@ describe('UserService', () => {
   describe("create user", () => {
     it('should create user', async () => {
       const email = `${Math.random() * 100000}@gmail.com`;
+      const name = "carmelo";
+      const lastName = "campos";
       const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
+        name,
+        lastName,
         email,
         password: "1234",
         confirmPassword: "1234"
       }
       const userCreated = await service.create(createDto)
       expect(userCreated).toMatchObject({
-        name: "fabian",
-        lastName: "graterol",
+        name,
+        lastName,
         email
       });
     });
@@ -50,6 +54,8 @@ describe('UserService', () => {
 
       await expect(() => service.create(createDto)).rejects.toThrow(NotAcceptableException);
     });
+
+
   })
 
   describe("findOne", () => {
@@ -73,11 +79,26 @@ describe('UserService', () => {
   })
 
   describe("findAll", () => {
-    it("should return all users", async () => {
-      const users = await service.findAll();
-      expect(users).toBeInstanceOf(Array)
-      if (users.length >= 0)
-        expect(users[0]).toBeInstanceOf(User)
+    it("should return 10 users", async () => {
+      const options =  new FindAllUserDto();
+      const [entities] = await service.findAll(options);
+      expect(entities).toBeInstanceOf(Array)
+      if (entities.length >= 0){
+        expect(entities[0]).toBeInstanceOf(User)
+      }
+      expect(entities.length).toBe(10)
+    })
+
+    it("should return 0 users", async () => {
+      const options =  new FindAllUserDto({take:20,page:2000,order:OrderEnum.DESC});
+      const [entities] = await service.findAll(options);
+      expect(entities.length).toBe(0)
+    })
+
+    it("should return 15 users", async () => {
+      const options =  new FindAllUserDto({take:15});
+      const [entities] = await service.findAll(options);
+      expect(entities.length).toBe(15)
     })
   })
 

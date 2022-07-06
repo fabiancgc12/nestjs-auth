@@ -1,15 +1,7 @@
 import { IsEmail, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { PageOptionsDto } from '../../common/dto/PageOptionsDto';
 
-export class FindAllUserDto{
-
-  @IsNumber()
-  @Min(1)
-  @Max(30)
-  limit:number = 10
-
-  @IsNumber()
-  @Min(1)
-  page:number
+export class FindAllUserDto extends PageOptionsDto{
 
   @IsString()
   @IsOptional()
