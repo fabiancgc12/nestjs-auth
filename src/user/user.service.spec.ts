@@ -8,6 +8,7 @@ import { NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { FindAllUserDto } from './dto/findAll-user.dto';
 import { OrderEnum } from '../common/enum/OrderEnum';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
+import { EntityDoesNotExistException } from '../common/exception/EntityDoesNotExistException';
 
 describe('UserService', () => {
   let service: UserService;
@@ -87,7 +88,8 @@ describe('UserService', () => {
     })
 
     it("should throw error when it does not exist", async () => {
-      await expect(() => service.findOne(-1)).rejects.toThrow(NotFoundException)
+      await expect(() => service.findOne(-1)).rejects.toThrow(EntityDoesNotExistException)
+      await expect(() => service.findOne(-1)).rejects.toThrow("User with id -1 not found")
     })
   })
 

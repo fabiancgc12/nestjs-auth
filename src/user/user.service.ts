@@ -11,6 +11,7 @@ import { PageDTOBase } from '../common/dto/pageDTOBase';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
 import { PostgresErrorCode } from '../common/enum/PostgreErrorEnum';
+import { EntityDoesNotExistException } from '../common/exception/EntityDoesNotExistException';
 
 @Injectable()
 export class UserService {
@@ -54,9 +55,14 @@ export class UserService {
   }
 
   async findOne(id: number) {
-    const user = await this.usersRepository.findOne({ where:{id} })
+    let user
+    try {
+      user = await this.usersRepository.findOne({ where:{id} })
+    } catch (e) {
+      throw new Error('Something went wrong');
+    }
     if (!user){
-      throw new NotFoundException(`User of id: ${id} does not exist`)
+      throw new EntityDoesNotExistException(`User`,id)
     }
     return user;
   }
