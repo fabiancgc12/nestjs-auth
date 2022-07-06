@@ -39,15 +39,14 @@ export class UserService {
 
   // async findAll(pageOptionsDto?: FindAllUserDto):Promise<PageDTOBase<User>> {
   async findAll(pageOptionsDto: FindAllUserDto):Promise<[User[],number]> {
-    const queryBuilder = this.usersRepository.createQueryBuilder("user");
+    const [entities, itemCount] = await this.usersRepository.findAndCount({
+      order:{
+        createdAt:pageOptionsDto.order
+      },
+      skip:pageOptionsDto.skip,
+      take:pageOptionsDto.take
+    })
 
-    queryBuilder
-      .orderBy("createdAt", pageOptionsDto.order)
-      .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.take);
-
-    const itemCount = await queryBuilder.getCount();
-    const { entities } = await queryBuilder.getRawAndEntities();
     return [entities,itemCount];
     // const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
     //
