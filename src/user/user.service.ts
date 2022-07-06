@@ -9,6 +9,8 @@ import { PageOptionsDto } from '../common/dto/PageOptionsDto';
 import { FindAllUserDto } from './dto/findAll-user.dto';
 import { PageDTOBase } from '../common/dto/pageDTOBase';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
+import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
+import { PostgresErrorCode } from '../common/enum/PostgreErrorEnum';
 
 @Injectable()
 export class UserService {
@@ -21,9 +23,16 @@ export class UserService {
   async create(createUserDto: CreateUserDto):Promise<User> {
     if (createUserDto.password != createUserDto.confirmPassword)
       throw new NotAcceptableException("Passwords does not match")
-    createUserDto.password = await hashPassword(createUserDto.password)
-    const newUser = new User(createUserDto.email,createUserDto.name,createUserDto.lastName,createUserDto.password);
-    await newUser.save()
+    const password = await hashPassword(createUserDto.password)
+    const newUser = new User(createUserDto.email,createUserDto.name,createUserDto.lastName,password);
+    try {
+      await newUser.save()
+    } catch (e) {
+      if (e?.code === PostgresErrorCode.UniqueViolation) {
+        throw new DuplicateKeyException('User with that email already exists');
+      }
+      throw new Error('Something went wrong');
+    }
     return newUser;
   }
 

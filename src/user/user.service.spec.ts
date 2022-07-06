@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { FindAllUserDto } from './dto/findAll-user.dto';
 import { OrderEnum } from '../common/enum/OrderEnum';
+import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
 
 describe('UserService', () => {
   let service: UserService;
@@ -55,6 +56,18 @@ describe('UserService', () => {
       await expect(() => service.create(createDto)).rejects.toThrow(NotAcceptableException);
     });
 
+    it('should throw error if repeated email', async () => {
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name: "carmelo",
+        lastName: "campos",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      await service.create(createDto)
+      await expect(() => service.create(createDto)).rejects.toThrow(DuplicateKeyException);
+    });
 
   })
 
