@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Like, Repository } from 'typeorm';
 import { hashPassword } from '../Utils/hashPassword';
 import { PageOptionsDto } from '../common/dto/PageOptionsDto';
 import { FindAllUserDto } from './dto/findAll-user.dto';
@@ -39,7 +39,9 @@ export class UserService {
 
   // async findAll(pageOptionsDto?: FindAllUserDto):Promise<PageDTOBase<User>> {
   async findAll(pageOptionsDto: FindAllUserDto):Promise<[User[],number]> {
+    const whereOptions:FindOptionsWhere<User> = this.createWhereOptions(pageOptionsDto)
     const [entities, itemCount] = await this.usersRepository.findAndCount({
+      where:whereOptions,
       order:{
         createdAt:pageOptionsDto.order
       },
@@ -72,5 +74,16 @@ export class UserService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  private createWhereOptions(pageOptionsDto: FindAllUserDto){
+    const whereOptions:FindOptionsWhere<User> = {};
+    if (pageOptionsDto.firstName)
+      whereOptions.name = ILike(`%${pageOptionsDto.firstName}%`)
+    if (pageOptionsDto.lastName)
+      whereOptions.lastName = ILike(`%${pageOptionsDto.lastName}%`)
+    if (pageOptionsDto.email)
+      whereOptions.email = ILike(`%${pageOptionsDto.email}%`)
+    return whereOptions
   }
 }

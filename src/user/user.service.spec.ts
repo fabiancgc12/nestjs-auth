@@ -115,6 +115,31 @@ describe('UserService', () => {
       const [entities] = await service.findAll(options);
       expect(entities.length).toBe(15)
     })
+
+    it("should return users with lastName", async () => {
+      const options =  new FindAllUserDto();
+      options.lastName = "grate"
+      const [entities] = await service.findAll(options);
+      expect(entities[0].lastName).toBe("graterol")
+
+    })
+
+    it("should return users with email", async () => {
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      await service.create(createDto);
+      const options =  new FindAllUserDto();
+      options.email = email
+      const [entities] = await service.findAll(options);
+      expect(entities[0].email).toBe(email)
+    })
+
   })
 
 })
