@@ -18,7 +18,6 @@ describe('UserService', () => {
       providers: [UserService],
       imports: [databaseTestConnectionModule, TypeOrmModule.forFeature([User])]
     }).compile();
-
     service = module.get<UserService>(UserService);
   });
   it('should be defined', () => {
@@ -72,7 +71,7 @@ describe('UserService', () => {
 
   })
 
-  describe("findOne", () => {
+  describe("findOne user", () => {
     it("should get user by id", async () => {
       const email = `${Math.random() * 100000}@gmail.com`;
       const createDto: CreateUserDto = {
@@ -93,7 +92,7 @@ describe('UserService', () => {
     })
   })
 
-  describe("findAll", () => {
+  describe("findAll users", () => {
     it("should return 10 users", async () => {
       const options =  new FindAllUserDto();
       const [entities] = await service.findAll(options);
@@ -142,4 +141,58 @@ describe('UserService', () => {
 
   })
 
+  describe("update user", () => {
+    let user:User;
+
+    beforeEach(async () => {
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name:"john",
+        lastName:"smith",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      user = await service.create(createDto)
+    })
+
+    it('should update name', async () => {
+      const updateDto = {
+        name:"maria"
+      };
+      const updated = await service.update(user.id,updateDto);
+      const { updatedAt,...toExpect } = {...user,...updateDto};
+      expect(updated).toMatchObject(toExpect)
+    });
+
+    it('should update all values', async () => {
+      const updateDto = {
+        name:"maria",
+        lastName:"gutierrez",
+        email:`${Math.random() * 100000}@gmail.com`
+
+      };
+      const updated = await service.update(user.id,updateDto);
+      // const {updatedAt,...expected} = updated;
+      const { updatedAt,...toExpect } = {...user,...updateDto}
+      expect(updated).toMatchObject(toExpect)
+    });
+
+    it('should throw error if email already exist',async () => {
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name:"john",
+        lastName:"smith",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const newUser = await service.create(createDto)
+      const updateDto = {
+        email: newUser.email
+      };
+      await expect(() => service.update(user.id,updateDto))
+        .rejects.toThrow(DuplicateKeyException)
+    });
+  })
 })

@@ -55,7 +55,7 @@ export class UserService {
     // return new PageDTOBase(entities, pageMetaDto);
   }
 
-  async findOne(id: number) {
+  async findOne(id: number):Promise<User> {
     let user
     try {
       user = await this.usersRepository.findOne({ where:{id} })
@@ -68,8 +68,23 @@ export class UserService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto):Promise<User> {
+    const user = await this.findOne(id);
+    if (updateUserDto.lastName)
+      user.lastName = updateUserDto.lastName;
+    if (updateUserDto.email)
+      user.email = updateUserDto.email;
+    if (updateUserDto.name)
+      user.name = updateUserDto.name;
+    try {
+      await user.save()
+    } catch (e) {
+      if (e?.code === PostgresErrorCode.UniqueViolation) {
+        throw new DuplicateKeyException('User with that email already exists');
+      }
+      throw new Error('Something went wrong');
+    }
+    return user
   }
 
   remove(id: number) {
