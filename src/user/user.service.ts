@@ -58,7 +58,7 @@ export class UserService {
   async findOne(id: number):Promise<User> {
     let user
     try {
-      user = await this.usersRepository.findOne({ where:{id} })
+      user = await this.usersRepository.findOne({ where:{id}})
     } catch (e) {
       throw new Error('Something went wrong');
     }
@@ -87,12 +87,16 @@ export class UserService {
     return user
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number){
+    const deleteResponse = await this.usersRepository.softDelete(id);
+    if (!deleteResponse.affected) {
+      throw new EntityDoesNotExistException("User",id);
+    }
+    return deleteResponse.affected;
   }
 
-  private createWhereOptions(pageOptionsDto: FindAllUserDto){
-    const whereOptions:FindOptionsWhere<User> = {};
+  private createWhereOptions(pageOptionsDto: FindAllUserDto):FindOptionsWhere<User> {
+    const whereOptions: FindOptionsWhere<User> = {};
     if (pageOptionsDto.firstName)
       whereOptions.name = ILike(`%${pageOptionsDto.firstName}%`)
     if (pageOptionsDto.lastName)

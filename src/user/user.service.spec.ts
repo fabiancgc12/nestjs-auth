@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { NotAcceptableException } from '@nestjs/common';
 import { FindAllUserDto } from './dto/findAll-user.dto';
 import { OrderEnum } from '../common/enum/OrderEnum';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
@@ -194,5 +194,32 @@ describe('UserService', () => {
       await expect(() => service.update(user.id,updateDto))
         .rejects.toThrow(DuplicateKeyException)
     });
+  })
+
+  describe("delete user",() => {
+    let user:User;
+
+    beforeEach(async () => {
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name:"john",
+        lastName:"smith",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      user = await service.create(createDto)
+    })
+
+    it('should delete user', async function() {
+      const result = await service.remove(user.id)
+      expect(result).toBe(1)
+    });
+
+    it('should throw error if user does not exist', async function() {
+      await expect(() => service.remove(-1))
+        .rejects.toThrowError(EntityDoesNotExistException)
+    });
+
   })
 })

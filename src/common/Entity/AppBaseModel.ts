@@ -1,4 +1,4 @@
-import { BaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, CreateDateColumn, DeleteDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 export class AppBaseModel extends BaseEntity{
 
@@ -10,4 +10,7 @@ export class AppBaseModel extends BaseEntity{
 
   @UpdateDateColumn({ name:"updatedat",type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
   public updatedAt: Date;
+
+  @DeleteDateColumn({type: "timestamp"})
+  public deletedAt: Date;
 }
