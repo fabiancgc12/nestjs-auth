@@ -123,9 +123,15 @@ describe('UserController', () => {
     });
 
     it('should throw error if user does not exist', async () => {
-      const test = await request(app.getHttpServer())
+      return request(app.getHttpServer())
         .get(`/user/-1`)
         .expect(404)
+    });
+
+    it('should not have password field', async () => {
+      const test = await request(app.getHttpServer())
+        .get(`/user/${user.id}`)
+      expect(test.body).not.toHaveProperty("password")
     });
 
   })
