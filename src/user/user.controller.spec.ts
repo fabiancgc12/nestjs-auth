@@ -214,4 +214,34 @@ describe('UserController', () => {
         .expect({ statusCode: 406, message: 'User with that email already exists' })
     });
   })
+
+  describe("/user/delete", () => {
+    let user:UserDTO;
+    beforeEach(async () => {
+      const email = generateRandomEmail();
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const test = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+      user = test.body
+    });
+
+    it('should delete user', async function() {
+      return request(app.getHttpServer())
+        .delete(`/user/${user.id}`)
+        .expect(200)
+    });
+
+    it('should throw error if user does not exist', async function() {
+      return request(app.getHttpServer())
+        .delete(`/user/-1`)
+        .expect(404)
+    });
+  })
 });
