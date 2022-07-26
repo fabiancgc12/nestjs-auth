@@ -1,7 +1,7 @@
 import { IsArray } from 'class-validator';
 import { PageMetaDto } from './PageMetaDto';
 
-export class PageDTOBase<T> {
+export class PageDTO<T> {
   @IsArray()
   readonly data: T[];
 

@@ -7,7 +7,7 @@ import { FindOptionsWhere, ILike, Like, Repository } from 'typeorm';
 import { hashPassword } from '../Utils/hashPassword';
 import { PageOptionsDto } from '../common/dto/PageOptionsDto';
 import { FindAllUserDto } from './dto/findAll-user.dto';
-import { PageDTOBase } from '../common/dto/pageDTOBase';
+import { PageDTO } from '../common/dto/pageDTO';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
 import { PostgresErrorCode } from '../common/enum/PostgreErrorEnum';

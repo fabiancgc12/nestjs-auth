@@ -5,6 +5,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { FindAllUserDto } from './dto/findAll-user.dto';
 import { UserMapper } from './user.mapper';
 import { UserDTO } from './dto/userDTO';
+import { PageMetaDto } from '../common/dto/PageMetaDto';
+import { PageDTO } from '../common/dto/pageDTO';
 
 @Controller('user')
 export class UserController {
@@ -21,9 +23,10 @@ export class UserController {
   }
 
   @Get()
-  findAll() {
-    const options = new FindAllUserDto();
-    return this.userService.findAll(options);
+  async findAll(@Body() options: FindAllUserDto) {
+    const [entities,count] = await this.userService.findAll(options);
+    const pageMetaDto = new PageMetaDto({ itemCount:count, pageOptionsDto:options });
+    return new PageDTO(entities, pageMetaDto);
   }
 
   @Get(':id')

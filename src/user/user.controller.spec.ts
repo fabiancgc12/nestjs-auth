@@ -8,6 +8,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
 import { UserDTO } from './dto/userDTO';
+import { FindAllUserDto } from './dto/findAll-user.dto';
+import { User } from './entities/user.entity';
+import { PageMetaDto } from '../common/dto/PageMetaDto';
 
 describe('UserController', () => {
   let app: INestApplication;
@@ -134,6 +137,19 @@ describe('UserController', () => {
       expect(test.body).not.toHaveProperty("password")
     });
 
+  })
+
+  describe("/findAll", () => {
+    it("should return 10 users", async () => {
+      const options =  new FindAllUserDto();
+      const test = await request(app.getHttpServer())
+        .get("/user")
+        .expect(200);
+      expect(test.body.data).toBeInstanceOf(Array)
+      expect(test.body.data.length).toBe(10);
+      expect(test.body.data[0]).toBeInstanceOf(User);
+      expect(test.body.meta).toBeInstanceOf(PageMetaDto);
+    })
   })
 
   describe("/user/update", () => {
