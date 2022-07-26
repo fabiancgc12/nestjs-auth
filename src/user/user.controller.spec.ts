@@ -62,7 +62,7 @@ describe('UserController', () => {
     });
 
     it('should throw error if repeated email', async () => {
-      const email = `${Math.random() * 100000}@gmail.com`;
+      const email = generateRandomEmail();
       const createDto: CreateUserDto = {
         name: "carmelo",
         lastName: "campos",
@@ -80,7 +80,7 @@ describe('UserController', () => {
     });
 
     it('should not have password property', async () => {
-      const email = `${Math.random() * 100000}@gmail.com`;
+      const email = generateRandomEmail();
       const createDto: CreateUserDto = {
         name: "carmelo",
         lastName: "campos",
@@ -102,7 +102,7 @@ describe('UserController', () => {
   describe("/user/get", () => {
     let user:UserDTO;
     beforeEach(async () => {
-      const email = `${Math.random() * 100000}@gmail.com`;
+      const email = generateRandomEmail();
       const createDto: CreateUserDto = {
         name: "fabian",
         lastName: "graterol",
@@ -126,6 +126,86 @@ describe('UserController', () => {
       const test = await request(app.getHttpServer())
         .get(`/user/-1`)
         .expect(404)
+    });
+
+  })
+
+  describe("/user/update", () => {
+    let user:UserDTO;
+    beforeEach(async () => {
+      const email = generateRandomEmail();
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const test = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+      user = test.body
+    });
+
+    it('should update name', async () => {
+      const updateDto = {
+        name:"maria"
+      };
+      const test = await request(app.getHttpServer())
+        .patch(`/user/${user.id}`)
+        .send(updateDto)
+        .expect(200)
+      const updated = test.body;
+      const { updatedAt,...toExpect } = {...user,...updateDto};
+      expect(updated).toMatchObject(toExpect)
+    });
+
+    it('should update all values', async () => {
+      const updateDto = {
+        name:"maria",
+        lastName:"gutierrez",
+        email:generateRandomEmail()
+      };
+      const test = await request(app.getHttpServer())
+        .patch(`/user/${user.id}`)
+        .expect(200)
+        .send(updateDto)
+      const updated = test.body;
+      const { updatedAt,...toExpect } = {...user,...updateDto};
+      expect(updated).toMatchObject(toExpect)
+    });
+
+    it('should not have password field', async () => {
+      const updateDto = {
+        name:"maria"
+      };
+      const test = await request(app.getHttpServer())
+        .patch(`/user/${user.id}`)
+        .send(updateDto)
+        .expect(200)
+      expect(test.body).not.toHaveProperty("password")
+    });
+
+    it('should throw error if email already exist', async () => {
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email:generateRandomEmail(),
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const test = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+      const newUser = test.body;
+      const updateDto = {
+        email: user.email
+      };
+      return request(app.getHttpServer())
+        .patch(`/user/${newUser.id}`)
+        .send(updateDto)
+        .expect(406)
+        .expect({ statusCode: 406, message: 'User with that email already exists' })
     });
   })
 });

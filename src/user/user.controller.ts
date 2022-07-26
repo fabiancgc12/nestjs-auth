@@ -34,8 +34,10 @@ export class UserController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    const user = await this.userService.update(+id, updateUserDto);
+    const dto = this.mapper.entityToDto(user)
+    return dto;
   }
 
   @Delete(':id')
