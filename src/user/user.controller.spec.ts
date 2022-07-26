@@ -7,6 +7,7 @@ import { INestApplication, NotAcceptableException, ValidationPipe } from '@nestj
 import { CreateUserDto } from './dto/create-user.dto';
 import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
+import { UserDTO } from './dto/userDTO';
 
 describe('UserController', () => {
   let app: INestApplication;
@@ -95,6 +96,36 @@ describe('UserController', () => {
         .then(res => {
           expect(res.body).not.toHaveProperty("password")
         })
+    });
+  });
+
+  describe("/user/get", () => {
+    let user:UserDTO;
+    beforeEach(async () => {
+      const email = `${Math.random() * 100000}@gmail.com`;
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email,
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const test = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+      user = test.body
+    });
+    it('should find user by id', async () => {
+      const test = await request(app.getHttpServer())
+        .get(`/user/${user.id}`)
+        .expect(200)
+      expect(user).toEqual(test.body)
+    });
+
+    it('should throw error if user does not exist', async () => {
+      const test = await request(app.getHttpServer())
+        .get(`/user/-1`)
+        .expect(404)
     });
   })
 });
