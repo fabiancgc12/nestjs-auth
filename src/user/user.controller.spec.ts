@@ -127,7 +127,6 @@ describe('UserController', () => {
       expect(test.body.message).toContain('email must be an email')
     });
 
-
     it('should not have password property', async () => {
       const email = generateRandomEmail();
       const createDto: CreateUserDto = {
@@ -298,6 +297,72 @@ describe('UserController', () => {
             )]
         )
       )
+    })
+
+    it('should throw error if dto is invalid', async () => {
+      let test = await request(app.getHttpServer())
+        .get("/user")
+        .query({
+          firstName:"",
+          lastName:"",
+          email:"",
+          order:"dcdsce",
+          take:10000,
+          page:undefined
+        })
+        .expect(400);
+      expect(test.body.message).toBeInstanceOf(Array)
+      expect(test.body.message).toContain('firstName should not be empty')
+      expect(test.body.message).toContain('lastName should not be empty')
+      expect(test.body.message).toContain('email must be an email')
+      expect(test.body.message).toContain('order must be a valid enum value')
+      expect(test.body.message).toContain('take must not be greater than 50');
+
+      test = await request(app.getHttpServer())
+        .get("/user")
+        .query({
+          firstName:"  ",
+          lastName:" ",
+          email:" ",
+          order:5,
+          take:-1,
+          page:-1
+        });
+      expect(test.body.message).toContain('firstName should not be empty')
+      expect(test.body.message).toContain('lastName should not be empty')
+      expect(test.body.message).toContain('email must be an email')
+      expect(test.body.message).toContain('order must be a valid enum value')
+      expect(test.body.message).toContain('take must not be less than 1');
+      expect(test.body.message).toContain('page must not be less than 1');
+    })
+
+    it('should workif send undefinied values', async () => {
+      const test = await request(app.getHttpServer())
+        .get("/user")
+        .query({
+          page:undefined,
+          take:undefined
+        })
+        .expect(200);
+      expect(test.body.data).toBeInstanceOf(Array)
+      expect(test.body.data.length).toBe(10);
+      expect(test.body.data[0]).toMatchObject<UserDTO>({
+        id:expect.any(Number),
+        name: expect.any(String),
+        lastName:expect.any(String),
+        email:expect.any(String),
+        createdAt:expect.any(String),
+        updatedAt:expect.any(String),
+        deletedAt:null,
+      })
+      expect(test.body.meta).toMatchObject<PageMetaDto>({
+        page:1,
+        take: 10,
+        itemCount:expect.any(Number),
+        pageCount:expect.any(Number),
+        hasPreviousPage:false,
+        hasNextPage:expect.any(Boolean),
+      });
     })
   })
 
