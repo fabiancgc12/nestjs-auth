@@ -9,6 +9,7 @@ import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import { UserDTO } from './dto/userDTO';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { OrderEnum } from '../common/enum/OrderEnum';
+import exp from 'constants';
 
 describe('UserController', () => {
   let app: INestApplication;
@@ -79,6 +80,53 @@ describe('UserController', () => {
         .send(createDto)
         .expect(406)
     });
+
+    it('should throw error if dto is invalid', async () => {
+      let createDto: CreateUserDto = {
+        name: "",
+        lastName: "",
+        email:"",
+        password: "",
+        confirmPassword: ""
+      }
+      let test = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+        .expect(400)
+      expect(test.body.message).toBeInstanceOf(Array)
+      expect(test.body.message).toContain('name should not be empty')
+      expect(test.body.message).toContain('lastName should not be empty')
+      expect(test.body.message).toContain('email must be an email')
+      expect(test.body.message).toContain('password should not be empty')
+      expect(test.body.message).toContain('confirmPassword should not be empty')
+
+      createDto = {
+        name: "   ",
+        lastName: " ",
+        email:"sdcsecf",
+        password: "  ",
+        confirmPassword: "  "
+      }
+
+      test = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+        .expect(400)
+      expect(test.body.message).toBeInstanceOf(Array)
+      expect(test.body.message).toContain('name should not be empty')
+      expect(test.body.message).toContain('lastName should not be empty')
+      expect(test.body.message).toContain('email must be an email')
+      expect(test.body.message).toContain('password should not be empty')
+      expect(test.body.message).toContain('confirmPassword should not be empty')
+
+      createDto.email = "    ";
+      test = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+        .expect(400)
+      expect(test.body.message).toContain('email must be an email')
+    });
+
 
     it('should not have password property', async () => {
       const email = generateRandomEmail();
