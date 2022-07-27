@@ -120,7 +120,6 @@ describe('UserService', () => {
       options.lastName = "grate"
       const [entities] = await service.findAll(options);
       expect(entities[0].lastName).toBe("graterol")
-
     })
 
     it("should return users with email", async () => {

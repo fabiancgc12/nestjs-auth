@@ -3,14 +3,12 @@ import { UserController } from './user.controller';
 import * as request from "supertest";
 import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
 import { UserModule } from './user.module';
-import { INestApplication, NotAcceptableException, ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { generateRandomEmail } from '../Utils/generateRandomEmail';
-import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
 import { UserDTO } from './dto/userDTO';
-import { FindAllUserDto } from './dto/findAll-user.dto';
-import { User } from './entities/user.entity';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
+import { OrderEnum } from '../common/enum/OrderEnum';
 
 describe('UserController', () => {
   let app: INestApplication;
@@ -141,14 +139,117 @@ describe('UserController', () => {
 
   describe("/findAll", () => {
     it("should return 10 users", async () => {
-      const options =  new FindAllUserDto();
       const test = await request(app.getHttpServer())
         .get("/user")
         .expect(200);
       expect(test.body.data).toBeInstanceOf(Array)
       expect(test.body.data.length).toBe(10);
-      expect(test.body.data[0]).toBeInstanceOf(User);
-      expect(test.body.meta).toBeInstanceOf(PageMetaDto);
+      expect(test.body.data[0]).toMatchObject<UserDTO>({
+        id:expect.any(Number),
+        name: expect.any(String),
+        lastName:expect.any(String),
+        email:expect.any(String),
+        createdAt:expect.any(String),
+        updatedAt:expect.any(String),
+        deletedAt:null,
+      })
+      expect(test.body.meta).toMatchObject<PageMetaDto>({
+        page:1,
+        take: 10,
+        itemCount:expect.any(Number),
+        pageCount:expect.any(Number),
+        hasPreviousPage:false,
+        hasNextPage:expect.any(Boolean),
+      });
+    })
+
+    it("should return 0 users", async () => {
+      const test = await request(app.getHttpServer())
+        .get("/user")
+        .query({take:20,page:2000,order:OrderEnum.DESC})
+        .expect(200);
+      expect(test.body.data).toBeInstanceOf(Array)
+      expect(test.body.data.length).toBe(0)
+      expect(test.body.meta).toMatchObject<PageMetaDto>({
+        page:2000,
+        take: 20,
+        itemCount:expect.any(Number),
+        pageCount:expect.any(Number),
+        hasPreviousPage:expect.any(Boolean),
+        hasNextPage:expect.any(Boolean),
+      });
+    })
+
+    it("should return 15 users", async () => {
+      const test = await request(app.getHttpServer())
+        .get("/user")
+        .query({take:15,page:2})
+        .expect(200);
+      expect(test.body.data).toBeInstanceOf(Array)
+      expect(test.body.data.length).toBe(15)
+      expect(test.body.meta).toMatchObject<PageMetaDto>({
+        page:2,
+        take: 15,
+        itemCount:expect.any(Number),
+        pageCount:expect.any(Number),
+        hasPreviousPage:true,
+        hasNextPage:expect.any(Boolean),
+      });
+    })
+
+    it("should return users with lastName", async () => {
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email:generateRandomEmail(),
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const createdTest = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+      const user = createdTest.body
+      const test = await request(app.getHttpServer())
+        .get("/user")
+        .query({lastName:user.lastName})
+        .expect(200);
+      expect(test.body.data.length).toBeGreaterThanOrEqual(1)
+      expect(test.body.data[0].lastName).toBe(user.lastName)
+    })
+
+    it("should return users with email", async () => {
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email:generateRandomEmail(),
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const createdTest = await request(app.getHttpServer())
+        .post("/user")
+        .send(createDto)
+      const user = createdTest.body as UserDTO
+      const test = await request(app.getHttpServer())
+        .get("/user")
+        .query({email:user.email})
+        .expect(200);
+      expect(test.body.data).toBeInstanceOf(Array)
+      expect(test.body.data.length).toBe(1)
+      expect(test.body.data[0]).toEqual(
+        expect.objectContaining(user)
+      )
+    })
+
+    it("should not have password in their fields", async () => {
+      const test = await request(app.getHttpServer())
+        .get("/user")
+      expect(test.body.data).toEqual(
+        expect.arrayContaining(
+          [expect.not.objectContaining(
+            {password:expect.any(String)}
+            )]
+        )
+      )
     })
   })
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -18,29 +18,28 @@ export class UserController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto):Promise<UserDTO> {
     const user = await this.userService.create(createUserDto)
-    const dto = this.mapper.entityToDto(user)
-    return dto;
+    return this.mapper.entityToDto(user);
   }
 
   @Get()
-  async findAll(@Body() options: FindAllUserDto) {
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async findAll(@Query() options: FindAllUserDto) {
     const [entities,count] = await this.userService.findAll(options);
     const pageMetaDto = new PageMetaDto({ itemCount:count, pageOptionsDto:options });
-    return new PageDTO(entities, pageMetaDto);
+    const dtos = this.mapper.entitiesToDtos(entities)
+    return new PageDTO(dtos, pageMetaDto);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const user = await this.userService.findOne(+id);
-    const dto = this.mapper.entityToDto(user)
-    return dto;
+    return this.mapper.entityToDto(user);
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.userService.update(+id, updateUserDto);
-    const dto = this.mapper.entityToDto(user)
-    return dto;
+    return this.mapper.entityToDto(user);
   }
 
   @Delete(':id')
