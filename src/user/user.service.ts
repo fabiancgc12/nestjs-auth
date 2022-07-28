@@ -12,6 +12,7 @@ import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
 import { PostgresErrorCode } from '../common/enum/PostgreErrorEnum';
 import { EntityDoesNotExistException } from '../common/exception/EntityDoesNotExistException';
+import { ServerErrorException } from '../common/exception/ServerErrorException';
 
 @Injectable()
 export class UserService {
@@ -32,12 +33,11 @@ export class UserService {
       if (e?.code === PostgresErrorCode.UniqueViolation) {
         throw new DuplicateKeyException('User with that email already exists');
       }
-      throw new Error('Something went wrong');
+      throw new ServerErrorException();
     }
     return newUser;
   }
 
-  // async findAll(pageOptionsDto?: FindAllUserDto):Promise<PageDTOBase<User>> {
   async findAll(pageOptionsDto: FindAllUserDto):Promise<[User[],number]> {
     const whereOptions:FindOptionsWhere<User> = this.createWhereOptions(pageOptionsDto)
     const [entities, itemCount] = await this.usersRepository.findAndCount({
@@ -60,7 +60,7 @@ export class UserService {
     try {
       user = await this.usersRepository.findOne({ where:{id}})
     } catch (e) {
-      throw new Error('Something went wrong');
+      throw new ServerErrorException();
     }
     if (!user){
       throw new EntityDoesNotExistException(`User`,id)
@@ -73,7 +73,7 @@ export class UserService {
     try {
       user = await this.usersRepository.findOne({ where:{email}})
     } catch (e) {
-      throw new Error('Something went wrong');
+      throw new ServerErrorException();
     }
     if (!user){
       throw new NotFoundException(`User with email: ${email} does not exist`)
@@ -96,7 +96,7 @@ export class UserService {
       if (e?.code === PostgresErrorCode.UniqueViolation) {
         throw new DuplicateKeyException('User with that email already exists');
       }
-      throw new Error('Something went wrong');
+      throw new ServerErrorException();
     }
     return user
   }
