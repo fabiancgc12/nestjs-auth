@@ -4,11 +4,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { NotAcceptableException } from '@nestjs/common';
+import { NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { FindAllUserDto } from './dto/findAll-user.dto';
 import { OrderEnum } from '../common/enum/OrderEnum';
 import { DuplicateKeyException } from '../common/exception/DuplicateKeyException';
 import { EntityDoesNotExistException } from '../common/exception/EntityDoesNotExistException';
+import { generateRandomEmail } from '../Utils/generateRandomEmail';
 
 describe('UserService', () => {
   let service: UserService;
@@ -90,6 +91,27 @@ describe('UserService', () => {
       await expect(() => service.findOne(-1)).rejects.toThrow(EntityDoesNotExistException)
       await expect(() => service.findOne(-1)).rejects.toThrow("User with id -1 not found")
     })
+  })
+
+  describe("findByEmail",() => {
+    it('should get user by email', async () => {
+      const createDto: CreateUserDto = {
+        name: "fabian",
+        lastName: "graterol",
+        email:generateRandomEmail(),
+        password: "1234",
+        confirmPassword: "1234"
+      }
+      const newUser = await service.create(createDto);
+      const getUser = await service.findByEmail(newUser.email);
+      expect(newUser).toEqual(getUser)
+    });
+
+    it("should throw error when it does not exist", async () => {
+      await expect(() => service.findByEmail("asdaSDASD@doesnotexist.com")).rejects.toThrow(NotFoundException)
+      await expect(() => service.findByEmail("asdaSDASD@doesnotexist.com")).rejects.toThrow(`User with email: asdaSDASD@doesnotexist.com does not exist`)
+    })
+
   })
 
   describe("findAll users", () => {
