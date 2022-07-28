@@ -1,5 +1,4 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { UserController } from '../user/user.controller';
 import { Test, TestingModule } from '@nestjs/testing';
 import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
 import { UserModule } from '../user/user.module';
@@ -8,6 +7,16 @@ import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import * as request from 'supertest';
 import { AuthController } from './auth.controller';
 import { AuthModule } from './auth.module';
+
+function generateDtoForUserCreation(options: Partial<CreateUserDto> = {}):CreateUserDto {
+  return {
+    name:options.name ?? "jose",
+    lastName:options.lastName ?? "smith",
+    email:options.email ?? generateRandomEmail(),
+    password:options.password ?? "1234",
+    confirmPassword:options.confirmPassword ?? "1234"
+  }
+}
 
 describe('AuthController', () => {
   let app: INestApplication;
@@ -19,7 +28,7 @@ describe('AuthController', () => {
     }).compile();
     controller = module.get<AuthController>(AuthController);
     app = module.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({transform:true}));
     await app.init();
   });
 
@@ -29,13 +38,7 @@ describe('AuthController', () => {
 
   describe("/auth/register ",() => {
     it('should create user and return it', async function() {
-      let userData:CreateUserDto = {
-        name:"jose",
-        lastName:"smith",
-        email:generateRandomEmail(),
-        password:"1234",
-        confirmPassword:"1234"
-      }
+      let userData:CreateUserDto = generateDtoForUserCreation()
       const { password,confirmPassword,...toExpect } = userData
       return request(app.getHttpServer())
         .post("/auth/register")
@@ -48,13 +51,10 @@ describe('AuthController', () => {
     });
 
     it('should throw error if passwords dont match', async () => {
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email: generateRandomEmail(),
-        password: "sdcsadc",
+      const createDto = generateDtoForUserCreation({
+        password:"sdcsadc",
         confirmPassword: "sdcssdcscsdadc"
-      }
+      })
       return request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
@@ -62,14 +62,7 @@ describe('AuthController', () => {
     });
 
     it('should throw error if repeated email', async () => {
-      const email = generateRandomEmail();
-      const createDto: CreateUserDto = {
-        name: "carmelo",
-        lastName: "campos",
-        email,
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const createDto: CreateUserDto = generateDtoForUserCreation()
       await request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
@@ -126,14 +119,7 @@ describe('AuthController', () => {
     });
 
     it('should not have password property', async () => {
-      const email = generateRandomEmail();
-      const createDto: CreateUserDto = {
-        name: "carmelo",
-        lastName: "campos",
-        email,
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const createDto: CreateUserDto = generateDtoForUserCreation()
       return request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
