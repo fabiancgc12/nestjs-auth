@@ -9,10 +9,10 @@ import { UserDoesNotExist } from '../common/exception/UserDoesNotExist';
 export class AuthService {
   constructor(private readonly userService:UserService) {}
 
-  async getAuthenticatedUser(authenticationDto:AuthenticationDto):Promise<User>{
+  async getAuthenticatedUser(email:string,password:string):Promise<User>{
     try {
-      const user:User = await this.userService.findByEmail(authenticationDto.email)
-      await this.verifyPassword(authenticationDto.password,user.password)
+      const user:User = await this.userService.findByEmail(email)
+      await this.verifyPassword(password,user.password)
       return user;
     } catch (e){
       throw new UserDoesNotExist();
