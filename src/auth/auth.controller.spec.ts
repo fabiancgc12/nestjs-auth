@@ -7,6 +7,7 @@ import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import * as request from 'supertest';
 import { AuthController } from './auth.controller';
 import { AuthModule } from './auth.module';
+import { UserDTO } from '../user/dto/userDTO';
 
 function generateDtoForUserCreation(options: Partial<CreateUserDto> = {}):CreateUserDto {
   return {
@@ -131,4 +132,62 @@ describe('AuthController', () => {
     });
   });
 
+  describe("/auth/login",() => {
+    it('should log user and return it', async () => {
+      let userData:CreateUserDto = generateDtoForUserCreation()
+      const test = await request(app.getHttpServer())
+        .post("/auth/register")
+        .send(userData)
+        .expect(201)
+      const newUser = test.body as UserDTO;
+      return request(app.getHttpServer())
+        .post("/auth/login")
+        .send({email:userData.email,password:userData.password})
+        .expect(200)
+        .expect(newUser)
+    });
+
+    it('should throw error if fields are incorrect', async () => {
+      const test = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({email:"",password:""})
+        .expect(401)
+      expect(test.body.message).toBe('Unauthorized')
+    });
+
+    it('should throw error if email does not exist', async function() {
+      const test = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({email:"patata@notexist.com",password:"1234"})
+        .expect(400)
+      expect(test.body.message).toBe("Wrong credentials provided")
+    });
+
+    it('should throw error if email is wrong', async function() {
+      let userData:CreateUserDto = generateDtoForUserCreation()
+      await request(app.getHttpServer())
+        .post("/auth/register")
+        .send(userData)
+        .expect(201)
+      const test = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({email:"patata@notexist.com",password:userData.password})
+        .expect(400)
+      expect(test.body.message).toBe("Wrong credentials provided")
+    });
+
+    it('should throw error if password is wrong', async function() {
+      let userData:CreateUserDto = generateDtoForUserCreation()
+      let test = await request(app.getHttpServer())
+        .post("/auth/register")
+        .send(userData)
+        .expect(201)
+      const user = test.body as UserDTO
+      test = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({email:user.email,password:"%#$T$#5ferfwef"})
+        .expect(400)
+      expect(test.body.message).toBe("Wrong credentials provided")
+    });
+  })
 });
