@@ -124,18 +124,22 @@ describe('AuthController', () => {
   });
 
   describe("/auth/login",() => {
-    it('should log user and return it', async () => {
-      let userData:CreateUserDto = mockCreateUserDto()
+    let user:UserDTO;
+    let mockCreate:CreateUserDto
+    beforeEach(async () => {
+      mockCreate = mockCreateUserDto()
       const test = await request(app.getHttpServer())
         .post("/auth/register")
-        .send(userData)
+        .send(mockCreate)
         .expect(201)
-      const newUser = test.body as UserDTO;
+      user = test.body as UserDTO;
+    })
+    it('should log user and return it', async () => {
       return request(app.getHttpServer())
         .post("/auth/login")
-        .send({email:userData.email,password:userData.password})
+        .send({email:mockCreate.email,password:mockCreate.password})
         .expect(200)
-        .expect(newUser)
+        .expect(user)
     });
 
     it('should throw error if fields are incorrect', async () => {
@@ -155,26 +159,15 @@ describe('AuthController', () => {
     });
 
     it('should throw error if email is wrong', async function() {
-      let userData:CreateUserDto = mockCreateUserDto()
-      await request(app.getHttpServer())
-        .post("/auth/register")
-        .send(userData)
-        .expect(201)
       const test = await request(app.getHttpServer())
         .post("/auth/login")
-        .send({email:"patata@notexist.com",password:userData.password})
+        .send({email:"patata@notexist.com",password:mockCreate.password})
         .expect(400)
       expect(test.body.message).toBe("Wrong credentials provided")
     });
 
     it('should throw error if password is wrong', async function() {
-      let userData:CreateUserDto = mockCreateUserDto()
-      let test = await request(app.getHttpServer())
-        .post("/auth/register")
-        .send(userData)
-        .expect(201)
-      const user = test.body as UserDTO
-      test = await request(app.getHttpServer())
+      const test = await request(app.getHttpServer())
         .post("/auth/login")
         .send({email:user.email,password:"%#$T$#5ferfwef"})
         .expect(400)
