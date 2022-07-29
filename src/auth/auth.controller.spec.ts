@@ -8,16 +8,7 @@ import * as request from 'supertest';
 import { AuthController } from './auth.controller';
 import { AuthModule } from './auth.module';
 import { UserDTO } from '../user/dto/userDTO';
-
-function generateDtoForUserCreation(options: Partial<CreateUserDto> = {}):CreateUserDto {
-  return {
-    name:options.name ?? "jose",
-    lastName:options.lastName ?? "smith",
-    email:options.email ?? generateRandomEmail(),
-    password:options.password ?? "1234",
-    confirmPassword:options.confirmPassword ?? "1234"
-  }
-}
+import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
 
 describe('AuthController', () => {
   let app: INestApplication;
@@ -39,7 +30,7 @@ describe('AuthController', () => {
 
   describe("/auth/register ",() => {
     it('should create user and return it', async function() {
-      let userData:CreateUserDto = generateDtoForUserCreation()
+      let userData:CreateUserDto = mockCreateUserDto()
       const { password,confirmPassword,...toExpect } = userData
       return request(app.getHttpServer())
         .post("/auth/register")
@@ -52,7 +43,7 @@ describe('AuthController', () => {
     });
 
     it('should throw error if passwords dont match', async () => {
-      const createDto = generateDtoForUserCreation({
+      const createDto = mockCreateUserDto({
         password:"sdcsadc",
         confirmPassword: "sdcssdcscsdadc"
       })
@@ -63,7 +54,7 @@ describe('AuthController', () => {
     });
 
     it('should throw error if repeated email', async () => {
-      const createDto: CreateUserDto = generateDtoForUserCreation()
+      const createDto: CreateUserDto = mockCreateUserDto()
       await request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
@@ -120,7 +111,7 @@ describe('AuthController', () => {
     });
 
     it('should not have password property', async () => {
-      const createDto: CreateUserDto = generateDtoForUserCreation()
+      const createDto: CreateUserDto = mockCreateUserDto()
       return request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
@@ -134,7 +125,7 @@ describe('AuthController', () => {
 
   describe("/auth/login",() => {
     it('should log user and return it', async () => {
-      let userData:CreateUserDto = generateDtoForUserCreation()
+      let userData:CreateUserDto = mockCreateUserDto()
       const test = await request(app.getHttpServer())
         .post("/auth/register")
         .send(userData)
@@ -164,7 +155,7 @@ describe('AuthController', () => {
     });
 
     it('should throw error if email is wrong', async function() {
-      let userData:CreateUserDto = generateDtoForUserCreation()
+      let userData:CreateUserDto = mockCreateUserDto()
       await request(app.getHttpServer())
         .post("/auth/register")
         .send(userData)
@@ -177,7 +168,7 @@ describe('AuthController', () => {
     });
 
     it('should throw error if password is wrong', async function() {
-      let userData:CreateUserDto = generateDtoForUserCreation()
+      let userData:CreateUserDto = mockCreateUserDto()
       let test = await request(app.getHttpServer())
         .post("/auth/register")
         .send(userData)

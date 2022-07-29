@@ -15,14 +15,7 @@ export class UserController {
     this.mapper = new UserMapper();
   }
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto):Promise<UserDTO> {
-    const user = await this.userService.create(createUserDto)
-    return this.mapper.entityToDto(user);
-  }
-
   @Get()
-  @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(@Query() options: FindAllUserDto) {
     const [entities,count] = await this.userService.findAll(options);
     const pageMetaDto = new PageMetaDto({ itemCount:count, pageOptionsDto:options });

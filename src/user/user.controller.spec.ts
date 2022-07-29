@@ -9,7 +9,8 @@ import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import { UserDTO } from './dto/userDTO';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { OrderEnum } from '../common/enum/OrderEnum';
-import exp from 'constants';
+import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
+import { AuthModule } from '../auth/auth.module';
 
 describe('UserController', () => {
   let app: INestApplication;
@@ -17,11 +18,11 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [databaseTestConnectionModule, UserModule]
+      imports: [databaseTestConnectionModule, UserModule,AuthModule]
     }).compile();
     controller = module.get<UserController>(UserController);
     app = module.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({transform:true}));
     await app.init();
   });
 
@@ -29,137 +30,12 @@ describe('UserController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe("/user/create ",() => {
-    it('should create user and return it', async function() {
-      let userData:CreateUserDto = {
-        name:"jose",
-        lastName:"smith",
-        email:generateRandomEmail(),
-        password:"1234",
-        confirmPassword:"1234"
-      }
-      const { password,confirmPassword,...toExpect } = userData
-      return request(app.getHttpServer())
-        .post("/user")
-        .send(userData)
-        .expect('Content-Type', /json/)
-        .expect(201)
-        .then(res => {
-          expect(res.body).toMatchObject(toExpect)
-        })
-    });
-
-    it('should throw error if passwords dont match', async () => {
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email: generateRandomEmail(),
-        password: "sdcsadc",
-        confirmPassword: "sdcssdcscsdadc"
-      }
-      return request(app.getHttpServer())
-        .post("/user")
-        .send(createDto)
-        .expect(406)
-    });
-
-    it('should throw error if repeated email', async () => {
-      const email = generateRandomEmail();
-      const createDto: CreateUserDto = {
-        name: "carmelo",
-        lastName: "campos",
-        email,
-        password: "1234",
-        confirmPassword: "1234"
-      }
-      await request(app.getHttpServer())
-        .post("/user")
-        .send(createDto)
-      return request(app.getHttpServer())
-        .post("/user")
-        .send(createDto)
-        .expect(406)
-    });
-
-    it('should throw error if dto is invalid', async () => {
-      let createDto: CreateUserDto = {
-        name: "",
-        lastName: "",
-        email:"",
-        password: "",
-        confirmPassword: ""
-      }
-      let test = await request(app.getHttpServer())
-        .post("/user")
-        .send(createDto)
-        .expect(400)
-      expect(test.body.message).toBeInstanceOf(Array)
-      expect(test.body.message).toContain('name should not be empty')
-      expect(test.body.message).toContain('lastName should not be empty')
-      expect(test.body.message).toContain('email must be an email')
-      expect(test.body.message).toContain('password should not be empty')
-      expect(test.body.message).toContain('confirmPassword should not be empty')
-
-      createDto = {
-        name: "   ",
-        lastName: " ",
-        email:"sdcsecf",
-        password: "  ",
-        confirmPassword: "  "
-      }
-
-      test = await request(app.getHttpServer())
-        .post("/user")
-        .send(createDto)
-        .expect(400)
-      expect(test.body.message).toBeInstanceOf(Array)
-      expect(test.body.message).toContain('name should not be empty')
-      expect(test.body.message).toContain('lastName should not be empty')
-      expect(test.body.message).toContain('email must be an email')
-      expect(test.body.message).toContain('password should not be empty')
-      expect(test.body.message).toContain('confirmPassword should not be empty')
-
-      createDto.email = "    ";
-      test = await request(app.getHttpServer())
-        .post("/user")
-        .send(createDto)
-        .expect(400)
-      expect(test.body.message).toContain('email must be an email')
-    });
-
-    it('should not have password property', async () => {
-      const email = generateRandomEmail();
-      const createDto: CreateUserDto = {
-        name: "carmelo",
-        lastName: "campos",
-        email,
-        password: "1234",
-        confirmPassword: "1234"
-      }
-      return request(app.getHttpServer())
-        .post("/user")
-        .send(createDto)
-        .expect('Content-Type', /json/)
-        .expect(201)
-        .then(res => {
-          expect(res.body).not.toHaveProperty("password")
-        })
-    });
-  });
-
   describe("/user/get", () => {
     let user:UserDTO;
     beforeEach(async () => {
-      const email = generateRandomEmail();
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email,
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const createDto: CreateUserDto = mockCreateUserDto()
       const test = await request(app.getHttpServer())
-        .post("/user")
+        .post("/auth/register")
         .send(createDto)
       user = test.body
     });
@@ -253,7 +129,7 @@ describe('UserController', () => {
         confirmPassword: "1234"
       }
       const createdTest = await request(app.getHttpServer())
-        .post("/user")
+        .post("/auth/register")
         .send(createDto)
       const user = createdTest.body
       const test = await request(app.getHttpServer())
@@ -273,7 +149,7 @@ describe('UserController', () => {
         confirmPassword: "1234"
       }
       const createdTest = await request(app.getHttpServer())
-        .post("/user")
+        .post("/auth/register")
         .send(createDto)
       const user = createdTest.body as UserDTO
       const test = await request(app.getHttpServer())
@@ -378,7 +254,7 @@ describe('UserController', () => {
         confirmPassword: "1234"
       }
       const test = await request(app.getHttpServer())
-        .post("/user")
+        .post("/auth/register")
         .send(createDto)
       user = test.body
     });
@@ -431,7 +307,7 @@ describe('UserController', () => {
         confirmPassword: "1234"
       }
       const test = await request(app.getHttpServer())
-        .post("/user")
+        .post("/auth/register")
         .send(createDto)
       const newUser = test.body;
       const updateDto = {
@@ -457,7 +333,7 @@ describe('UserController', () => {
         confirmPassword: "1234"
       }
       const test = await request(app.getHttpServer())
-        .post("/user")
+        .post("/auth/register")
         .send(createDto)
       user = test.body
     });
