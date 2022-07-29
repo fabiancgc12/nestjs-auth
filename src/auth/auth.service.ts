@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { AuthenticationDto } from './dto/authentication.dto';
 import * as bcrypt from "bcrypt";
 import { User } from '../user/entities/user.entity';
 import { UserDoesNotExist } from '../common/exception/UserDoesNotExist';
@@ -20,7 +19,7 @@ export class AuthService {
   }
 
   private async verifyPassword(plainPassword:string,hashedPassword:string){
-    const isPasswordMatching = bcrypt.compare(plainPassword,hashedPassword)
+    const isPasswordMatching = await bcrypt.compare(plainPassword,hashedPassword)
     if (!isPasswordMatching)
       throw new UserDoesNotExist();
   }
