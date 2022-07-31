@@ -7,10 +7,11 @@ import { LocalStrategy } from './localGuard/local.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwtGuard/jwt.strategy';
+import { SameUserGuard } from './sameUserGuard/sameUser.guard';
 
 @Module({
   controllers:[AuthController],
-  providers: [AuthService,LocalStrategy,JwtStrategy],
+  providers: [AuthService,LocalStrategy,JwtStrategy,SameUserGuard],
   imports:[
     UserModule,
     PassportModule,

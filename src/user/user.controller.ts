@@ -42,14 +42,13 @@ export class UserController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtGuard)
+  @UseGuards(SameUserGuard)
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.userService.update(+id, updateUserDto);
     return this.mapper.entityToDto(user);
   }
 
   @Delete(':id')
-  @UseGuards(JwtGuard)
   @UseGuards(SameUserGuard)
   async remove(@Param('id') id: string) {
     return this.userService.remove(+id);

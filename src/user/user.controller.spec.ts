@@ -11,6 +11,8 @@ import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { OrderEnum } from '../common/enum/OrderEnum';
 import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
 import { AuthModule } from '../auth/auth.module';
+import * as cookieParser from 'cookie-parser';
+import { ConfigModule } from '@nestjs/config';
 
 describe('UserController', () => {
   let app: INestApplication;
@@ -18,11 +20,18 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [databaseTestConnectionModule, UserModule,AuthModule]
+      imports: [
+        databaseTestConnectionModule,
+        UserModule,
+        AuthModule,
+        ConfigModule.forRoot({
+          isGlobal: true,
+        })]
     }).compile();
     controller = module.get<UserController>(UserController);
     app = module.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({transform:true}));
+    app.use(cookieParser());
     await app.init();
   });
 
@@ -121,40 +130,33 @@ describe('UserController', () => {
     })
 
     it("should return users with lastName", async () => {
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email:generateRandomEmail(),
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const createDto: CreateUserDto = mockCreateUserDto({
+        lastName:"loaiza"
+      })
       const createdTest = await request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
       const user = createdTest.body
       const test = await request(app.getHttpServer())
         .get("/user")
-        .query({lastName:user.lastName})
+        .query({lastName:"loaiza"})
         .expect(200);
       expect(test.body.data.length).toBeGreaterThanOrEqual(1)
       expect(test.body.data[0].lastName).toBe(user.lastName)
     })
 
     it("should return users with email", async () => {
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email:generateRandomEmail(),
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const email = generateRandomEmail()
+      const createDto: CreateUserDto = mockCreateUserDto({
+        email
+      })
       const createdTest = await request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
       const user = createdTest.body as UserDTO
       const test = await request(app.getHttpServer())
         .get("/user")
-        .query({email:user.email})
+        .query({email:email})
         .expect(200);
       expect(test.body.data).toBeInstanceOf(Array)
       expect(test.body.data.length).toBe(1)
@@ -212,7 +214,7 @@ describe('UserController', () => {
       expect(test.body.message).toContain('page must not be less than 1');
     })
 
-    it('should workif send undefinied values', async () => {
+    it('should work if sent undefined values', async () => {
       const test = await request(app.getHttpServer())
         .get("/user")
         .query({
@@ -244,19 +246,46 @@ describe('UserController', () => {
 
   describe("/user/update", () => {
     let user:UserDTO;
+    let cookie:string[];
     beforeEach(async () => {
-      const email = generateRandomEmail();
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email,
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const createDto: CreateUserDto = mockCreateUserDto()
       const test = await request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
-      user = test.body
+      user = test.body;
+      const login = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({
+          email:createDto.email,
+          password:createDto.password
+        })
+      cookie = login.get("Set-Cookie")
+    });
+
+    it('should throw error if not logged', async function() {
+      const updateDto = {
+        name:"maria"
+      };
+      return request(app.getHttpServer())
+        .patch(`/user/${user.id}`)
+        .send(updateDto)
+        .expect(401)
+        .expect({statusCode: 401,message: 'Unauthorized'})
+    });
+
+    it('should throw error if logged user tries to change other user', async function() {
+      const test = await request(app.getHttpServer())
+        .post("/auth/register")
+        .send(mockCreateUserDto())
+      const updateDto = {
+        name:"maria"
+      };
+      return request(app.getHttpServer())
+        .patch(`/user/${test.body.id}`)
+        .send(updateDto)
+        .set("Cookie", [...cookie])
+        .expect({statusCode: 401,message: 'Unauthorized'})
+        .expect(401)
     });
 
     it('should update name', async () => {
@@ -266,6 +295,7 @@ describe('UserController', () => {
       const test = await request(app.getHttpServer())
         .patch(`/user/${user.id}`)
         .send(updateDto)
+        .set("Cookie", [...cookie])
         .expect(200)
       const updated = test.body;
       const { updatedAt,...toExpect } = {...user,...updateDto};
@@ -280,6 +310,7 @@ describe('UserController', () => {
       };
       const test = await request(app.getHttpServer())
         .patch(`/user/${user.id}`)
+        .set("Cookie", [...cookie])
         .expect(200)
         .send(updateDto)
       const updated = test.body;
@@ -287,35 +318,34 @@ describe('UserController', () => {
       expect(updated).toMatchObject(toExpect)
     });
 
-    it('should not have password field', async () => {
+    it('should throw error if not have password field', async () => {
       const updateDto = {
         name:"maria"
       };
       const test = await request(app.getHttpServer())
         .patch(`/user/${user.id}`)
         .send(updateDto)
+        .set("Cookie", [...cookie])
         .expect(200)
       expect(test.body).not.toHaveProperty("password")
     });
 
     it('should throw error if email already exist', async () => {
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email:generateRandomEmail(),
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const email = generateRandomEmail()
+      const createDto: CreateUserDto = mockCreateUserDto({
+        email
+      })
       const test = await request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
       const newUser = test.body;
       const updateDto = {
-        email: user.email
+        email:newUser.email
       };
       return request(app.getHttpServer())
-        .patch(`/user/${newUser.id}`)
+        .patch(`/user/${user.id}`)
         .send(updateDto)
+        .set("Cookie", [...cookie])
         .expect(406)
         .expect({ statusCode: 406, message: 'User with that email already exists' })
     });
@@ -323,31 +353,39 @@ describe('UserController', () => {
 
   describe("/user/delete", () => {
     let user:UserDTO;
+    let cookie:string[];
+
     beforeEach(async () => {
-      const email = generateRandomEmail();
-      const createDto: CreateUserDto = {
-        name: "fabian",
-        lastName: "graterol",
-        email,
-        password: "1234",
-        confirmPassword: "1234"
-      }
+      const createDto: CreateUserDto = mockCreateUserDto()
       const test = await request(app.getHttpServer())
         .post("/auth/register")
         .send(createDto)
       user = test.body
+      const login = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({
+          email:createDto.email,
+          password:createDto.password
+        })
+      cookie = login.get("Set-Cookie")
     });
 
     it('should delete user', async function() {
       return request(app.getHttpServer())
         .delete(`/user/${user.id}`)
+        .set("Cookie", [...cookie])
         .expect(200)
     });
 
     it('should throw error if user does not exist', async function() {
       return request(app.getHttpServer())
         .delete(`/user/-1`)
-        .expect(404)
+        .set("Cookie", [...cookie])
+        .expect(401)
+        .expect({
+          statusCode:401,
+          message:"Unauthorized"
+        })
     });
   })
 });
