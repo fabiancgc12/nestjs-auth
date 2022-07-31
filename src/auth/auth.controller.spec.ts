@@ -9,18 +9,30 @@ import { AuthController } from './auth.controller';
 import { AuthModule } from './auth.module';
 import { UserDTO } from '../user/dto/userDTO';
 import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
+import { ConfigModule } from '@nestjs/config';
+import * as cookieParser from 'cookie-parser';
+import { AuthService } from './auth.service';
 
 describe('AuthController', () => {
   let app: INestApplication;
   let controller: AuthController;
+  let service:AuthService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [databaseTestConnectionModule, UserModule,AuthModule]
+      imports: [
+        databaseTestConnectionModule,
+        UserModule,
+        AuthModule,
+        ConfigModule.forRoot({
+          isGlobal: true,
+      })]
     }).compile();
     controller = module.get<AuthController>(AuthController);
+    service = module.get<AuthService>(AuthService);
     app = module.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({transform:true}));
+    app.use(cookieParser());
     await app.init();
   });
 
@@ -135,9 +147,11 @@ describe('AuthController', () => {
       user = test.body as UserDTO;
     })
     it('should log user and return it', async () => {
+      const cookie:string = service.getCookieWithJwtToken(user.id)
       return request(app.getHttpServer())
         .post("/auth/login")
         .send({email:mockCreate.email,password:mockCreate.password})
+        .expect('set-cookie', cookie)
         .expect(200)
         .expect(user)
     });
