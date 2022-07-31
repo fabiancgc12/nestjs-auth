@@ -4,7 +4,7 @@ import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { UserDTO } from '../user/dto/userDTO';
 import { UserMapper } from '../user/user.mapper';
-import { LocalAuthenticationGuard } from './localAuthentication.guard';
+import { LocalAuthenticationGuard } from './localGuard/localAuthentication.guard';
 import { RequestWithUser } from './requestWithUser';
 import {Response} from "express"
 

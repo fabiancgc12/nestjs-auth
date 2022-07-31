@@ -17,7 +17,7 @@ import { FindAllUserDto } from './dto/findAll-user.dto';
 import { UserMapper } from './user.mapper';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { PageDTO } from '../common/dto/pageDTO';
-import { JwtGuard } from '../auth/jwt.guard';
+import { JwtGuard } from '../auth/jwtGuard/jwt.guard';
 
 @Controller('user')
 export class UserController {
