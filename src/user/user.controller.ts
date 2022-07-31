@@ -50,7 +50,7 @@ export class UserController {
 
   @Delete(':id')
   @UseGuards(SameUserGuard)
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string):Promise<number> {
     return this.userService.remove(+id);
   }
 }
