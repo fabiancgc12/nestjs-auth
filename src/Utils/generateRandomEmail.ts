@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 export function generateRandomEmail(){
-  return `${Math.random() * 1000000}@gmail.com`;
+  return faker.internet.email();
 }

@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
 import { UserModule } from '../user/user.module';
 import { CreateUserDto } from '../user/dto/create-user.dto';
-import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import * as request from 'supertest';
 import { AuthController } from './auth.controller';
 import { AuthModule } from './auth.module';
