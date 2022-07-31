@@ -30,6 +30,10 @@ export class AuthService {
     return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get('JWT_EXPIRATION_TIME')}`;
   }
 
+  public getCookieForLogOut() {
+    return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
+  }
+
   private async verifyPassword(plainPassword:string,hashedPassword:string){
     const isPasswordMatching = await bcrypt.compare(plainPassword,hashedPassword)
     if (!isPasswordMatching)

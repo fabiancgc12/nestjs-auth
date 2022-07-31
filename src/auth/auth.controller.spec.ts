@@ -187,4 +187,50 @@ describe('AuthController', () => {
       expect(test.body.message).toBe("Wrong credentials provided")
     });
   })
+
+  describe("/auth/logOut",() => {
+    let cookie:string[]
+    beforeEach(async () => {
+      let userData:CreateUserDto = mockCreateUserDto()
+      await request(app.getHttpServer())
+        .post("/auth/register")
+        .send(userData)
+      const login = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({
+          email:userData.email,
+          password:userData.password
+        })
+      cookie = login.get("Set-Cookie")
+    })
+
+    it('should return no cookies', async function() {
+      const test = await request(app.getHttpServer())
+        .post("/auth/logout")
+        .set("Cookie",cookie)
+        .expect(200)
+      expect(test.get("Set-Cookie")).toEqual([`Authentication=; HttpOnly; Path=/; Max-Age=0`])
+    });
+
+    it('should throw error if wrong cookie is sent', function() {
+      return request(app.getHttpServer())
+        .post("/auth/logout")
+        .set("Set-Cookie","Authentication=patata; HttpOnly; Path=/; Max-Age=0")
+        .expect(401)
+        .expect({
+          statusCode:401,
+          message:"Unauthorized"
+        })
+    });
+
+    it('should throw error if no cookie is sent', function() {
+      return request(app.getHttpServer())
+        .post("/auth/logout")
+        .expect(401)
+        .expect({
+          statusCode:401,
+          message:"Unauthorized"
+        })
+    });
+  })
 });

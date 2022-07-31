@@ -7,6 +7,7 @@ import { UserMapper } from '../user/user.mapper';
 import { LocalAuthenticationGuard } from './localGuard/localAuthentication.guard';
 import { RequestWithUser } from './requestWithUser';
 import {Response} from "express"
+import { JwtGuard } from './jwtGuard/jwt.guard';
 
 @Controller("auth")
 export class AuthController {
@@ -33,5 +34,12 @@ export class AuthController {
     response.setHeader('Set-Cookie', cookie);
     const dto = this.mapper.entityToDto(user);
     response.send(dto)
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('logout')
+  async logOut(@Req() request: RequestWithUser, @Res() response: Response) {
+    response.setHeader('Set-Cookie', this.authService.getCookieForLogOut());
+    return response.sendStatus(200);
   }
 }

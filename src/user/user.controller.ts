@@ -18,6 +18,7 @@ import { UserMapper } from './user.mapper';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { PageDTO } from '../common/dto/pageDTO';
 import { JwtGuard } from '../auth/jwtGuard/jwt.guard';
+import { SameUserGuard } from '../auth/sameUserGuard/sameUser.guard';
 
 @Controller('user')
 export class UserController {
@@ -49,6 +50,7 @@ export class UserController {
 
   @Delete(':id')
   @UseGuards(JwtGuard)
+  @UseGuards(SameUserGuard)
   async remove(@Param('id') id: string) {
     return this.userService.remove(+id);
   }
