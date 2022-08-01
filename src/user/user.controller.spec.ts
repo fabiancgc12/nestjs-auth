@@ -370,11 +370,12 @@ describe('UserController', () => {
       cookie = login.get("Set-Cookie")
     });
 
-    it('should delete user', async function() {
+    it('should delete user and redirect to logout', async function() {
       return request(app.getHttpServer())
         .delete(`/user/${user.id}`)
         .set("Cookie", [...cookie])
-        .expect(200)
+        .expect(302)
+        .expect('Location', '/auth/logout')
     });
 
     it('should throw error if user does not exist', async function() {
@@ -385,21 +386,6 @@ describe('UserController', () => {
         .expect({
           statusCode:401,
           message:"Unauthorized"
-        })
-    });
-
-    it('should throw error if trying to delete twice with same token', async function() {
-      await request(app.getHttpServer())
-        .delete(`/user/${user.id}`)
-        .set("Cookie", [...cookie])
-        .expect(200)
-      return request(app.getHttpServer())
-        .delete(`/user/${user.id}`)
-        .set("Cookie", [...cookie])
-        .expect(404)
-        .expect({
-          statusCode:404,
-          message:"Not Found"
         })
     });
   })

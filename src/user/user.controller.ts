@@ -6,10 +6,8 @@ import {
   Param,
   Patch,
   Post,
-  Query,
+  Query, Redirect, Res,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -17,8 +15,8 @@ import { FindAllUserDto } from './dto/findAll-user.dto';
 import { UserMapper } from './user.mapper';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { PageDTO } from '../common/dto/pageDTO';
-import { JwtGuard } from '../auth/jwtGuard/jwt.guard';
 import { SameUserGuard } from '../auth/sameUserGuard/sameUser.guard';
+import {Response} from "express"
 
 @Controller('user')
 export class UserController {
@@ -50,7 +48,8 @@ export class UserController {
 
   @Delete(':id')
   @UseGuards(SameUserGuard)
-  async remove(@Param('id') id: string):Promise<number> {
-    return this.userService.remove(+id);
+  @Redirect("/auth/logout")
+  async remove(@Param('id') id: string,@Res() res:Response):Promise<void> {
+    await this.userService.remove(+id);
   }
 }

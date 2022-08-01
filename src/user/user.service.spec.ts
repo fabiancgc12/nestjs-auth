@@ -243,12 +243,5 @@ describe('UserService', () => {
         .rejects.toThrowError(EntityDoesNotExistException)
     });
 
-
-    it('should throw error if trying to delete twice', async function() {
-      await service.remove(user.id)
-      await expect(() => service.remove(user.id))
-        .rejects
-        .toThrowError(EntityDoesNotExistException)
-    });
   })
 })
