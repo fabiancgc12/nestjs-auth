@@ -387,5 +387,20 @@ describe('UserController', () => {
           message:"Unauthorized"
         })
     });
+
+    it('should throw error if trying to delete twice with same token', async function() {
+      await request(app.getHttpServer())
+        .delete(`/user/${user.id}`)
+        .set("Cookie", [...cookie])
+        .expect(200)
+      return request(app.getHttpServer())
+        .delete(`/user/${user.id}`)
+        .set("Cookie", [...cookie])
+        .expect(404)
+        .expect({
+          statusCode:404,
+          message:"Not Found"
+        })
+    });
   })
 });
