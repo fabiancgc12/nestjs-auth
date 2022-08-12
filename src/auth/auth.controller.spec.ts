@@ -88,11 +88,11 @@ describe('AuthController', () => {
         .send(createDto)
         .expect(400)
       expect(test.body.message).toBeInstanceOf(Array)
-      expect(test.body.message).toContain('name should not be empty')
-      expect(test.body.message).toContain('lastName should not be empty')
+      expect(test.body.message).toContain("name must be longer than or equal to 3 characters")
+      expect(test.body.message).toContain("lastName must be longer than or equal to 3 characters")
       expect(test.body.message).toContain('email must be an email')
-      expect(test.body.message).toContain('password should not be empty')
-      expect(test.body.message).toContain('confirmPassword should not be empty')
+      expect(test.body.message).toContain("password must be longer than or equal to 6 characters")
+      expect(test.body.message).toContain("confirmPassword must be longer than or equal to 6 characters")
 
       createDto = {
         name: "   ",
@@ -107,11 +107,11 @@ describe('AuthController', () => {
         .send(createDto)
         .expect(400)
       expect(test.body.message).toBeInstanceOf(Array)
-      expect(test.body.message).toContain('name should not be empty')
-      expect(test.body.message).toContain('lastName should not be empty')
+      expect(test.body.message).toContain("name must be longer than or equal to 3 characters")
+      expect(test.body.message).toContain("lastName must be longer than or equal to 3 characters")
       expect(test.body.message).toContain('email must be an email')
-      expect(test.body.message).toContain('password should not be empty')
-      expect(test.body.message).toContain('confirmPassword should not be empty')
+      expect(test.body.message).toContain("password must be longer than or equal to 6 characters")
+      expect(test.body.message).toContain("confirmPassword must be longer than or equal to 6 characters")
 
       createDto.email = "    ";
       test = await request(app.getHttpServer())
