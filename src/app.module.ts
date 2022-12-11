@@ -4,6 +4,9 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from './user/entities/user.entity';
+import { getEnvPath } from './common/helper/env.helper';
+
+const envFilePath: string = getEnvPath(`${__dirname}/common/envs`);
 
 @Module({
   imports: [
@@ -25,6 +28,7 @@ import { User } from './user/entities/user.entity';
     UserModule,
     AuthModule,
     ConfigModule.forRoot({
+      envFilePath,
       isGlobal: true,
     })
 ],

@@ -10,23 +10,17 @@ import { UserDTO } from './dto/userDTO';
 import { PageMetaDto } from '../common/dto/PageMetaDto';
 import { OrderEnum } from '../common/enum/OrderEnum';
 import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
-import { AuthModule } from '../auth/auth.module';
 import * as cookieParser from 'cookie-parser';
-import { ConfigModule } from '@nestjs/config';
+import { AppModule } from '../app.module';
 
 describe('UserController', () => {
   let app: INestApplication;
   let controller: UserController;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        databaseTestConnectionModule,
-        UserModule,
-        AuthModule,
-        ConfigModule.forRoot({
-          isGlobal: true,
-        })]
+        AppModule]
     }).compile();
     controller = module.get<UserController>(UserController);
     app = module.createNestApplication();
