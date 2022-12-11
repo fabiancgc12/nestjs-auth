@@ -11,6 +11,7 @@ import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
 import { ConfigModule } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { AuthService } from './auth.service';
+import { AppModule } from '../app.module';
 
 describe('AuthController', () => {
   let app: INestApplication;
@@ -19,13 +20,7 @@ describe('AuthController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        databaseTestConnectionModule,
-        UserModule,
-        AuthModule,
-        ConfigModule.forRoot({
-          isGlobal: true,
-      })]
+      imports: [AppModule]
     }).compile();
     controller = module.get<AuthController>(AuthController);
     service = module.get<AuthService>(AuthService);
@@ -137,6 +132,16 @@ describe('AuthController', () => {
   describe("/auth/login",() => {
     let user:UserDTO;
     let mockCreate:CreateUserDto
+    const OLD_ENV = process.env;
+
+    beforeEach(() => {
+      jest.resetModules() // Most important - it clears the cache
+      process.env = { ...OLD_ENV }; // Make a copy
+    });
+    afterAll(() => {
+      process.env = OLD_ENV; // Restore old environment
+    });
+
     beforeEach(async () => {
       mockCreate = mockCreateUserDto()
       const test = await request(app.getHttpServer())
@@ -146,6 +151,8 @@ describe('AuthController', () => {
       user = test.body as UserDTO;
     })
     it('should log user and return it', async () => {
+      //setting expiration time as 0 so the jwt generated can be compared without errors of expiration time
+      process.env.JWT_EXPIRATION_TIME = "0";
       const cookie:string = service.getCookieWithJwtToken(user.id)
       return request(app.getHttpServer())
         .post("/auth/login")
