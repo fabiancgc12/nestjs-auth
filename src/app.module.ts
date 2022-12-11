@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BookModule } from './book/book.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -23,7 +22,6 @@ import { User } from './user/entities/user.entity';
         synchronize: true,
       }),
     }),
-    BookModule,
     UserModule,
     AuthModule,
     ConfigModule.forRoot({
