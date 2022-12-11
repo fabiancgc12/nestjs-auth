@@ -7,6 +7,7 @@ import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import { User } from '../user/entities/user.entity';
 import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
 import { UserDoesNotExist } from '../common/exception/UserDoesNotExist';
+import { AppModule } from '../app.module';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -14,8 +15,7 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports:[UserModule,databaseTestConnectionModule],
-      providers: [AuthService],
+      imports:[AppModule],
     }).compile();
 
     service = module.get<AuthService>(AuthService);

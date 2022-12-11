@@ -11,14 +11,14 @@ import { DuplicateKeyException } from '../common/exception/DuplicateKeyException
 import { EntityDoesNotExistException } from '../common/exception/EntityDoesNotExistException';
 import { generateRandomEmail } from '../Utils/generateRandomEmail';
 import { rejects } from 'assert';
+import { AppModule } from '../app.module';
 
 describe('UserService', () => {
   let service: UserService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService],
-      imports: [databaseTestConnectionModule, TypeOrmModule.forFeature([User])]
+      imports: [AppModule]
     }).compile();
     service = module.get<UserService>(UserService);
   });
