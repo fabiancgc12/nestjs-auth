@@ -1,8 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from './user.controller';
 import * as request from "supertest";
-import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
-import { UserModule } from './user.module';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { generateRandomEmail } from '../Utils/generateRandomEmail';
@@ -12,15 +10,27 @@ import { OrderEnum } from '../common/enum/OrderEnum';
 import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from '../app.module';
+import { ConfigService } from '@nestjs/config';
+
+let JWT_EXPIRATION_TIME = "600"
 
 describe('UserController', () => {
   let app: INestApplication;
   let controller: UserController;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule]
-    }).compile();
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get:(key) => {
+          if (key == "JWT_EXPIRATION_TIME")
+            return JWT_EXPIRATION_TIME
+          return process.env[key]
+        }
+      })
+      .compile();
     controller = module.get<UserController>(UserController);
     app = module.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({transform:true}));
@@ -342,7 +352,29 @@ describe('UserController', () => {
         .expect(406)
         .expect({ statusCode: 406, message: 'User with that email already exists' })
     });
+
+    describe(" expired jwt", () => {
+      beforeAll(() => {
+        JWT_EXPIRATION_TIME = "0"
+      })
+
+      afterAll(() => {
+        JWT_EXPIRATION_TIME = "600"
+      })
+
+      it('should throw error if jwt has expired',  () => {
+        const updateDto = {
+          name:"maria"
+        };
+        return request(app.getHttpServer())
+          .patch(`/user/${user.id}`)
+          .send(updateDto)
+          .set("Cookie", [...cookie])
+          .expect(401)
+      });
+    })
   })
+
 
   describe("/user/delete", () => {
     let user:UserDTO;
