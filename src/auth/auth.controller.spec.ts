@@ -1,14 +1,10 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { databaseTestConnectionModule } from '../../test/DatabaseTestConnectionModule';
-import { UserModule } from '../user/user.module';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import * as request from 'supertest';
 import { AuthController } from './auth.controller';
-import { AuthModule } from './auth.module';
 import { UserDTO } from '../user/dto/userDTO';
 import { mockCreateUserDto } from '../Utils/mockCreateUserDto';
-import { ConfigModule } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { AuthService } from './auth.service';
 import { AppModule } from '../app.module';
@@ -132,15 +128,6 @@ describe('AuthController', () => {
   describe("/auth/login",() => {
     let user:UserDTO;
     let mockCreate:CreateUserDto
-    const OLD_ENV = process.env;
-
-    beforeEach(() => {
-      jest.resetModules() // Most important - it clears the cache
-      process.env = { ...OLD_ENV }; // Make a copy
-    });
-    afterAll(() => {
-      process.env = OLD_ENV; // Restore old environment
-    });
 
     beforeEach(async () => {
       mockCreate = mockCreateUserDto()
