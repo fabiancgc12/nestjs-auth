@@ -151,15 +151,16 @@ describe('AuthController', () => {
       user = test.body as UserDTO;
     })
     it('should log user and return it', async () => {
-      //setting expiration time as 0 so the jwt generated can be compared without errors of expiration time
-      process.env.JWT_EXPIRATION_TIME = "0";
       const cookie:string = service.getCookieWithJwtToken(user.id)
-      return request(app.getHttpServer())
+      const test = await request(app.getHttpServer())
         .post("/auth/login")
         .send({email:mockCreate.email,password:mockCreate.password})
-        .expect('set-cookie', cookie)
         .expect(200)
         .expect(user)
+      const token = test.get("set-cookie")[0].split(";")[0].split("=")[1]
+      const serverCookie = service.decodeJwt(token)
+      // @ts-ignore
+      expect(serverCookie?.userId).toBe(user.id)
     });
 
     it('should throw error if fields are incorrect', async () => {

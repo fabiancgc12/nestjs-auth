@@ -39,4 +39,8 @@ export class AuthService {
     if (!isPasswordMatching)
       throw new UserDoesNotExist();
   }
+
+  public decodeJwt(token:string){
+    return this.jwtService.decode(token)
+  }
 }
