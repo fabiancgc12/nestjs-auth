@@ -1,8 +1,8 @@
 {
-  "name": "library-back",
+  "name": "nest-auth",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "fabian graterol",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
