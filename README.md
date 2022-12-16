@@ -7,5 +7,5 @@
 
 A [Nestjs](https://github.com/nestjs/nest) template with user and auth module out of the box for future projects
 
-Currently handles user CRUD, with filter to look for users, login and logout using JWT. 
+Currently handles user CRUD, with filter to look for other users. It handles login and logout using JWT. 
 Login is protected with a local guard and theres is also a JWTGuard to protect other api points
